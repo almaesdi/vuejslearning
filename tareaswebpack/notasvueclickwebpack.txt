@@ -1,0 +1,342 @@
+---------------------------------------------------------------------------------------------------------------------------------
+1) Vue Cli (command line interface)
+
+Instalaremos la interfaz de linea de comandos a traves de npm (manejador de paquetes de Node.js)
+
+    npm install -g @vue/cli
+
+Una vez instalado, ya tendremos disponible el comando
+
+    vue init
+
+Con ese comando podremos crear nuevos proyectos VUE, pero debemos especificar una plantilla de proyecto
+las cuales vienen preconfiguradas estructuralmente con diferentes Tipos de proyecto.
+La plantilla mas basica es la "simple", la cual solo crea un archivo index con la libreria cargada.
+
+---------------------------------------------------------------------------------------------------------------------------------
+1) Webpack
+
+Crearemos un proyecto vue con webpack:
+
+    vue init webpack-simple nombreproyecto
+
+Esta plantilla va a utilizar webpack junto con sus modulos.
+Una vez creado el proyecto, deberemos instalar sus dependecias ejecutando el comando en la ubicacion
+del archivo package.json (razi del proyecto):
+
+    npm install
+
+Tendremos nuestro proyecto base listo para ejecutar.
+
+Si queremos levantar la pagina junto con su opcion de Hot reload (refrescar webbrowser cuando hay modificaciones)
+
+    npm run dev
+
+*una vez ejecutado, podemos entrar a nuestra pagina en localhost:8080
+
+Cuando la aplicacion este lista para ser subida a produccion, ejecutaremos el comando:
+
+    npm run build
+
+Ese comando comprimira y optimizara todo los Javascript necesarios para el proyecto en un unico archivo.
+
+
+Gracias a WebPack podremos modularizar un proyecto VUE, dado que será webpack el encargado de juntar y empaquetar los codigos
+Adicionalmente, webpack junto con Babel transforma todo el codigo a una version compatible con cualquier navegador. Por lo que
+podemos programar en una ultima version de javascript y despreocuparnos de la compatibilidad que debe tener los navegadores.
+
+
+---------------------------------------------------------------------------------------------------------------------------------
+2) Webpack y CSS (Particulares y Modularizados)
+
+Cada componente puede poseer el CSS que va ocupar su codigo html (template). Recordemos que los 3 elementos de un componente
+son:
+  - html (<template>)
+  - Propiedades Vue (<script>)
+  - Estilos (<style>)
+
+Hay que tener en cuenta que cuando se declara estilos dentro de un componente, por defecto, estos seran GLOBALES, dado que
+la logica de empaquetamiento de webpack es tomar todos los estilos y juntarlos en la pagina principal, por lo que pueden existir
+choques de clases, nombres o id si no se ocupan selectores unicos universales en los componentes.
+
+Existen 2 formas de indicarle a VUE que los CSS seran unicamente ocupados por el componente:
+
+Scoped:
+  Mediante un atributo especial de Vue podemos indicar que los estilos definidos dentro de un componente sean unicamente aplicados
+  al componente y no sean globales despues del empaquetamiento de webpack.
+  Cuando definamos la etiqueta style debemos poner el atributo "scoped", ejemplo:
+
+    <style scoped>
+      ...
+    </style>
+
+  Eso le indicara a webpack que los estilos no son globales y son unicamente aplicados a ese componente.
+  Por debajo, webpack, usando vue-loader, concatenará una id a cada selector del componente, por lo que en ejecucion puede que no 
+  tengamos exactamente los mismos nombres.
+
+Module:
+  Una forma mas compleja (otra utilidad) es definidiendo nuestro estilos con el atributo "module".
+  Este atributo le cambiara el nombre a los selectores de manera random (Por lo que será UNICO) y les hara referencia a traves de 
+  una computed property especial llamada $style. Esto significa que los estilos ya no se asignan llamado al nombre de la clase, sino a 
+  traves de $style.
+  *Dado que estamos llamando a una computed property, el selector class debe ser un v-bind
+
+      <h2 :class="$style.selectorCss"></h2>
+
+  *Module es mas complejo, pero mas ventajoso cuando se tenga clases dinamicas.
+
+*Dentro de un componente podemos tener mas de una etiqueta style, por lo que podemos definir estilos globales,particulares y
+modularizados dentro de un mismo componente:
+
+  <style>
+    /*Estilos globales*/
+  </style>
+
+  <style scoped>
+    /*Estilos exclusivos del componente*/
+  </style>
+
+  <style module>
+    /*Estilos Modularizados (Y exclusivos) del componente*/
+  </style>
+
+---------------------------------------------------------------------------------------------------------------------------------
+3) Webpack y SASS (o SCSS)
+
+Si al momento de creacion del proyecto eligimos que trabajaremos con SASS, entonces webpack traera instalado el compilador
+o procesador de SCSS y SASS, por lo que podremos sin problemas utilizar SASS O SCSS en los estilos de nuestro componente.
+Para utilizar SCSS o SASS debemos declarar un atributo particular a nuestra etiqueta de estilos:
+
+  <style lang="SCSS">
+    ...
+  </style>
+
+  <style lang="SASS">
+    ...
+  </style>
+
+Para asegurarnos que nuestro SCSS o SASS sea procesado podemos revisar lo siguiente:
+
+  - Archivo: package.json
+      Tienen que estar las siguientes dependecias (loaders):
+
+      "devDependencies" : {
+        ...
+        "css-loader":"...",
+        "sass-loader": "...",
+        ...
+      }
+
+  - Archivo: webpack.config.js
+      Las dependencias son utilizadas por el webpack, por lo que tienen que estar cargados en el loaders, 
+      detro del siguiente objeto:
+
+      module: {
+        ...
+        rules: [
+          {
+          ...
+          options: {
+            ...
+            loaders:{
+              ...
+              'scss': '...',
+              'sass': '...'
+            ...
+
+---------------------------------------------------------------------------------------------------------------------------------
+4) Webpack, Bootstrap y jquery
+
+Instalaremos bootstrap (y sus dependencias) con el siguiente comando:
+
+  npm install bootstrap@3.3.7 popper.js jquery --save
+
+  *El comando --save es para que quede registrada la dependencia en el archivo package.json
+
+Tendremos que modificar el archivo webpack.config.js:
+
+webpack.config.js:
+
+    module.exports = {
+      ...
+      module: {
+        rules: [
+          ...
+          {
+            test: /\.(png|jpg|gif|svg|eot|ttf|woff2?)$/,
+            loader: 'file-loader',
+            options: {
+              name: '[name].[ext]?[hash]'
+            }
+          },
+          ...
+        ]
+      },
+      ...
+      plugins: [
+        ...
+        new webpack.ProvidePlugin({
+          $: 'jquery',
+          jQuery: 'jquery',
+          Popper: ['popper.js', 'default'],
+          ...
+        })
+        ...
+      ],
+      ...
+    }
+
+  *Aregagamos los formatos "|eot|ttf|woff2?" al test del file-loader
+  *agregamos jquery y popper de manera global para el proyecto
+  
+Finalmente, agreamos las librerias nuestro JS principal, usualmente main.js:
+
+  import 'bootstrap'
+  import 'bootstrap/dist/css/bootstrap.css'
+
+
+Sino queremos usar jQuery de manera global, en vez de declararlo en providePlugin, podemos importarlo en los 
+componentes (en la seccion de los import) como:
+
+  window.$ = window.jQuery = require('jQuery');
+
+---------------------------------------------------------------------------------------------------------------------------------
+4) Plugin Webpack: Extrayendo el CSS a un archivo
+
+Actualmente todo el Css agregados en los componentes es alojado en el archivo build.js y luego cargado en nuestro
+encabezado html utilizando la etiqueta style.
+El problema es que cuando pasemos a produccion no podremos modificar de manera facil y practica el CSS ya que estara
+completamente comprimido en el archivo build.js. Pero con un plugin de webpack podemos hacer que todo los CSS queden
+en un archivo externo al build.js
+
+Podemos seguir la guia de la pagina oficial del desarrollo:
+Pagina web: https://github.com/webpack-contrib/mini-css-extract-plugin
+
+
+Instalaremos el plugin usando el siguiente comando:
+
+  npm install extract-text-webpack-plugin --save-dev
+
+  *--save-dev indica que queremos guardar el paquete como dependencia de desarrollo en "package.json"
+
+Luego, en webpack.config.js vamos modificar lo siguiente:
+
+  - Agregaremos la dependencia al principio del archivo:
+    const ExtractTextPlugin = require("extract-text-webpack-plugin")
+
+  - Actualizaremos la actual "rule" de "module" por esta nueva:
+
+    module: {
+      rules: [
+        {
+          test: /\.css$/,
+          use: ExtractTextPlugin.extract({
+            fallback: "vue-style-loader",       //usamos el vue-style-loader en vez de style loader sugerido
+            use: "css-loader"
+          })
+        },
+        ...
+        {
+          test: /\.vue$/,
+          loader: 'vue-loader',
+          options: {
+            extractCSS: true,              //Debemos agregar esta linea para extraer el CSS desde los .vue
+            loaders: {
+            }
+            // other vue-loader options go here
+          }
+        },
+        ...
+      ]
+    ...
+    }
+  
+  - Agregaremos el plugin con el nombre del archivo resultante
+
+    plugins: [
+      new ExtractTextPlugin("styles.css"),
+      ...
+    ]
+
+  Por ultimo, tenemos que hacer referencia en nuestro "index.html" a los nueva hojas de estilos:
+
+    <body>
+      <div id="app"></div>
+      <script src="/dist/build.js"></script>
+      <link href="/dist/styles.css" rel="stylesheet" type="text/css">
+    </body>
+
+---------------------------------------------------------------------------------------------------------------------------------
+5) Plugin Webpack: Reducir el tamano del archivo CSS
+
+Actualmetne existe un plugin de webpack capaz de comprimir los estilos css incluso llegando al 90% mas liviano.
+Esto es debido a PurifyCSS eliminará todos los selectores que no se ocupen, especialmente los de bootstrap.
+*Este plugin hace uso del plugin anterior extract-text-webpack
+
+Podemos seguir la guia de la pagina oficial del desarrollo:
+https://github.com/webpack-contrib/purifycss-webpack
+
+Instalaremos el plugin usando el siguiente comando:
+  npm install purifycss-webpack purify-css --save-dev
+
+  *instalamos 2 plugins (el plugin oficial y el de webpack)
+
+Luego, en webpack.config.js vamos modificar lo siguiente:
+
+  - Agregaremos la dependencia al principio del archivo:
+    var glob = require('glob');
+    var PurifyCSSPlugin = require('purifycss-webpack');
+
+  - Agreremos el plugin:
+      new PurifyCSSPlugin({
+        // Give paths to parse for rules. These should be absolute!
+        paths: glob.sync(path.join(__dirname, 'src/*.vue')), //Especificamos la ruta de nuestros .vue
+        purifyOptions: {
+          minify: true, //comprime el archivo, quitando espacios y salto de lineas
+        }
+      })
+
+
+CSS Modules Support:
+
+  Puesto que los selectores de CSS Modules son dinamicos (leidos desde computed properties), nos daremos cuenta que
+  son eliminados por PurifyCSS. Ya que no son llamados directamente.
+
+  Por lo que para poder utilizar PurifyCSS con "CSS Modules" tendremos que realizar un pequeño truco, el cual consiste
+  en generar un prefijo en las clases con CSS Modules y luego configurar la whitelist de PurifyCSS para que ignore las
+  clases con ese prefijo.
+
+  Primero, le indicaremos al vue-loader un prefijo para todos los CSS MODULES que se crean en el proyecto, por lo que
+  modificaremos el archivo "webpack.config.js" y agregaremos lo siguiente:
+
+    ...
+    {
+      test: /\.vue$/,
+      loader: 'vue-loader',
+      options: {
+        ....
+      },
+      cssModules: {
+        localIdentName: '_module_[hash:base64]',
+        camelCase: true
+      }
+    }
+    ...
+
+  localIdentName es para especificar el nombre que tendra los modulos, por lo que elegimos el prefijo _module_ seguido
+  por el nombre random que definia antes (hash:base64)
+
+  Finalmente agregamos el whitelist con nuestro prefijo en la declaracion del plugin en "webpack.config.js":
+
+    new PurifyCSSPlugin({
+    // Give paths to parse for rules. These should be absolute!
+    paths: glob.sync(path.join(__dirname, 'src/*.vue')),
+    purifyOptions: {
+      minify: true,
+      whitelist: ['*_module_*'],      //Agregamos nuestra WhiteList con el prefijo
+    }
+  }),
+
+
+---------------------------------------------------------------------------------------------------------------------------------
+7) Pasando a produccion

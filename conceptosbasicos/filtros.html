@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+
+    </head>
+    <body>
+
+        <h2>Bienvenido</h2>
+
+        <div id="app">
+            <p>Tu nombre es: {{nombre | upper | title}}</p>
+            <p>Tu nombre es: {{nombre | upper | titulo('Mr')}}</p>
+
+            <p>Tu dinero disponible es: {{dinero | money}}</p>
+        </div>
+
+
+        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/numeral.js/2.0.6/numeral.min.js"></script>
+
+        <script>
+            /*Funcion global, podria ser usada por varias instancias. Aqui es solo un ejemplo*/
+            Vue.filter('money', function(value){
+                return numeral(value).format('$0,000');
+            });
+
+            var vm = new Vue({
+                el : "#app",
+                data : {
+                    nombre : "Juan",
+                    dinero : 5000,
+                },
+                filters : {
+                    upper: function(value){
+                        return value.toUpperCase();
+                    },
+                    title: function(value){
+                        return "Mr. " + value;
+                    },
+                    titulo: function(value, title){
+                        return title+ ". " + value;
+                    }
+                }
+            });
+        </script>
+
+    </body>
+</html>

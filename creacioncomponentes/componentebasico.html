@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+       <!-- Latest compiled and minified CSS -->
+       <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+       <!-- Optional theme -->
+       <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    </head>
+    <body>
+        <style>
+            .editing {
+                border-style: groove;
+                border-width: 2px;
+                border-color: gray;
+            }
+
+            .completed {
+                text-decoration: line-through;
+                color: gray;
+            }
+
+            .completed .glyphicon {
+                color: gray;
+            }
+
+        </style>
+        <div id="app" class="container">
+
+            <h2>Tareas</h2>
+            
+            <ul class="list-group tasks">
+                <li v-for="(task,index) of tasks" class="list-group-item" :class="{editing:task.editing, completed: !task.pending}">
+                    <a v-on:click="toggleStatus(task)"><app-icon :img="task.pending ? 'unchecked':'check'"></app-icon></a>
+
+                    <!--Genera 2 template, se mostrara dependiendo si se esta editando o no-->
+                    <template v-if="!task.editing">
+                        <span class="description">{{task.description}}</span>
+                        <div class="pull-right">
+                            <a v-on:click="editTask(task)"><app-icon img="edit"></app-icon></span></a>
+                            <a v-on:click="dropTask(index)"><app-icon img="trash"></app-icon></span></a>
+                        </div>
+                    </template>
+
+                    <template v-else>
+                        <input type="text" v-model="draft">
+                        <div class="pull-right">
+                            <a v-on:click="updateTask(task)"><app-icon img="ok"></app-icon></a>
+                            <a v-on:click="discardTask(task)"><app-icon img="remove"></app-icon></a>
+                        </div>
+                    </template>
+                    
+                </li>
+            </ul>
+
+            <form v-on:submit.prevent="createTask">
+                <input type="text" v-model="new_task" class="form-control">
+                <button class="btn btn-primary">Crear Tarea</button>
+            </form>
+
+        </div>
+
+        <script
+        src="https://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+        crossorigin="anonymous"></script>
+        <!-- Latest compiled and minified JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+        <script>
+
+            Vue.component('app-icon',{
+                template: '<span :class="cssClasses"></span>',
+                props: ['img'],
+                computed: {
+                    cssClasses: function(){
+                        return 'glyphicon glyphicon-'+this.img;
+                    }
+                }
+            });
+
+            var vm = new Vue({
+                el : "#app",
+                data : {
+                    draft : '',
+                    new_task : '',
+                    tasks : [{
+                            description : 'Primera Tarea',
+                            pending : true,
+                            editing : false,
+                        },
+                        {
+                            description : 'Segunda Tarea',
+                            pending : true,
+                            editing : false,
+                        },
+                        {
+                            description : 'Tercera Tarea',
+                            pending : false,
+                            editing : false,
+                        }
+                    ]
+                },
+                methods : {
+                    createTask : function(){
+                        this.tasks.push({
+                            description : this.new_task,
+                            pending : true,
+                            editing : false,
+                        });
+
+                        this.new_task = '';
+                    },
+                    toggleStatus: function(task){
+                        task.pending = !task.pending; 
+                    },
+                    editTask: function(task){
+                        //Con esto evito que se este editando mas de una
+                        this.tasks.forEach(function(task){
+                            task.editing = false;
+                        });
+
+                        this.draft = task.description;
+                        task.editing = true;
+                    },
+                    updateTask : function(task){
+                        task.description = this.draft;
+                        task.editing = false;
+                    },
+                    discardTask : function(task){
+                        task.editing = false;
+                    },
+                    dropTask : function(index){
+                        this.tasks.splice(index,1);
+                    },
+                }
+            });
+
+        </script>
+
+    </body>
+</html>

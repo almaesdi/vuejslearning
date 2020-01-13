@@ -1,0 +1,105 @@
+Componente
+
+Los componentes son una de las características más poderosas de Vue. Te permiten extender elementos HTML básicos para encapsular código reutilizable. 
+En un nivel alto, los componentes son elementos personalizados a los que el compilador de Vue les añade comportamiento. En algunos casos, pueden aparecer 
+como elementos HTML nativos extendidos con el atributo especial is.
+Con componentes nos referimos a esos bloques de html que son estándar y que se usan varias veces con el mismo objetivo, todo esto con la única finalidad de aplicar 
+la reutilización de código y reducir esas líneas de más
+
+*La diferencia entre un componente y una instancia de Vue es la declaracion de la data. En un componente, data debe ser una funcion, esto mantendra la independencia
+entre las variables de componentes.
+Gracias a esto cada vez que utiliza un componente, se crea una nueva instancia del mismo. Por lo que sus variables son independientes entre componentes iguales.
+
+
+Para este proyecto, Haremos 2 componentes: Iconos y Tareas, siendo el ultimo el mas complejo
+
+Notar que cada tarea sera un componente, por lo que tendremos varios componentes independientes con sus propios atributos.
+
+Dado que el estado "editing" no es propio de una tarea, sino mas bien un estado para manejar la Vista, la sacaremos de la tarea y la agregaremos
+al componente. Esto significa que el componente manejara el estado Editing ya que seran independientes entre componentes.
+
+
+Existe un instancia VM principal y luego los componentes. Todas las variables son independientes entre si, y no se puede acceder a ellas directamente.
+En nuestro proyecto tenemos un pequeño problema:
+
+El array de tareas es parte de la instancia VM principal, a partir de el crearemos varios componentes de tarea, pero cuando tendremos la opcion de eliminar tarea
+sera dentro de nuestro componente y no del VM principal, ya que la lista de tareas no es parte del componente Tarea.
+
+Existen formas de comunicar componentes entre si y avisar de cambios y acciones.
+En el caso de que un componente hijo le quiere avisar al padre, podemos usar eventos personalizados, en el cual el hijo le puede "avisar" al padre a traves de este evento
+pasar parametros y ejecutar metodos de el. Esto se logra con el $emit.Por ejemplo crearemos el siguiente metodo en el hijo:
+
+    removeTask : function(){
+        //Creamos un evento llamado "remove" que sera escuchado desde afuera con v-on
+        this.$emit('remove',this.index);
+    },
+
+Por lo que al llamar al evento removeTask del hijo, este llamara un evento llamado "remove" y remove esta asociado a un metodo del padre.
+
+Si queremos que exista comunicacion entre varios componentes dentro de la aplicacion, podemos hacer uso de una variable global que ususalmente llamaremos "eventBus".
+La declararemos de la siguiente manera:
+
+    var eventBus = new Vue;
+
+
+---------------------------------------------------------------------------------------------------------------------------------
+1) Primer Componente (basico)
+
+Tomaremos la ultima iteracion del CRUD hecho anteriormente y haremos un componente para simplificar un poco mas el codigo. Haremos un componente para los iconos.
+
+    Mediante el comando Vue.component podremos crear nuevos componentes, debemos especificar un nombre de componente (etiqueta) y un objeto.
+    El objeto devuelve un template
+
+        Vue.component('app-icon',{
+            template: '<span :class="cssClasses"></span>',
+            props: ['img'],
+            computed: {
+                cssClasses: function(){
+                    return 'glyphicon glyphicon-'+this.img;
+                }
+            }
+        });
+
+Con esa solucion podemos reemplaza las etiquetas:
+    <span class="glyphicon glyphicon-remove"></span>
+Por:
+    <app-icon img='remove'></app-icon>
+
+Pero, para poder reemplazar la etiqueta:
+    <span class="glyphicon" :class="task.pending ? 'glyphicon-unchecked':'glyphicon-check'"></span>
+debemos ponerlo con un v-bind:img (o el nombre de props que escojamos), recorandando que se puede usar :img
+Por lo que lo reemplazaremos por:
+    <app-icon :img="task.pending ? 'unchecked':'check'"></app-icon>
+
+---------------------------------------------------------------------------------------------------------------------------------
+2) Segundo Componente (Complejo)
+
+Realizaremos un componente de las tareas, como si fueran una especie de modelo de tarea.
+En esta ocasion tenemos que tomar todo el HTML de las tareas y meterlo en el template de nuestro componente.
+Pero a diferencia del componente basico, el codigo HTML es muy grande por lo que lo pondremos dentro de una etiqueta
+<scrpit> pero especial teniendo el atributo type="text/x-template". Este atributo le dice al navegador que no es javascript.
+Luego, identificaremos el template mediante una id.
+
+Ejemplo de script:
+    <script type="text/x-template" id="task-template">
+        //Codigo HTML de las tareas
+    </script>
+
+Luego, el componente sera el siguiente:
+
+    Vue.component('app-task',{
+        template: '#task-template',
+        props: ['task','index'],
+    });
+
+Los props son los atributos de la etiqueta que hemos definido "app-task".
+
+Dado que hemos definido un componente, debemos pasar todos los metodos a el. Cuando se usa como componente, y los objetos son mandados
+a traves de los props, los objetos viven en el componente por lo que en los metodos no es necesario recibir los objetos, basta con un this.
+
+---------------------------------------------------------------------------------------------------------------------------------
+0) Tip
+---------------------------------------------------------------------------------------------------------------------------------
+0) Tip
+---------------------------------------------------------------------------------------------------------------------------------
+0) Tip

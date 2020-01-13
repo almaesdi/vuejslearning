@@ -1,0 +1,307 @@
+---------------------------------------------------------------------------------------------------------------------------------
+0) Tip
+Cuando se esta probando En cada pagina dentro del tag de vuejs, ingresar {{$data}}, $data es una variable especial de Vue.js y con ella podemos examinar nuestra propiedad data de nuestro objeto VM.
+
+---------------------------------------------------------------------------------------------------------------------------------
+1) Hola Mundo
+
+Usamos la version Online de la libreria agregando:
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+Luego definiremos nuestra instancia VueJs con la siguiente estructura basica :
+
+    var vm = new Vue({              //Definiremos nuestra instancia de Vue, el cual opcionalmente puede ser asignado a una variable (recomendado)
+        el : "#app",                //Elemento Html con el cual esta enlazado, puede ser una id, una clase, etc. Las unicas excepciones son los elementos <html> y <body>
+        data : {                    //Declaracion de Data que se usaran para los enlaces
+            titulo : "",            //Variable tipo string vacio, se puede agregar texto aqui mismo
+        }
+    });
+    vm.titulo = "Hola Mundo";       //Dado que la instancia esta asignada a una variable, podemos setear u obtener sus atributos de data mediante el punto
+
+
+---------------------------------------------------------------------------------------------------------------------------------
+2) Condicionales(if-else) y fomulario basico con bindeo de campos
+
+v-model
+    Bindearemos los campos input de un fomulario hacia las variables de la instancia de view con v-model, por lo que dentro del tag asignaremos una nueva propiedad
+    por ejemplo: 
+
+        <input type="text" v-model="name">
+
+    Eso significa que lo que se escriba en el input se le asignara a la variable "name" que debe estar definida
+    previamente en data. El valor se toma dinamicamente
+
+v-bind
+    El valor del input por defecto siempre es string, pero si usamos la directiva v-bind:value, Vue pueda asociar correctamente el dato con el tipo de dato declarado.Sino sera tratado como string.
+    Ejemplo:
+
+        <input type="radio" v-model="exp" value="true"> Si
+
+    Si lo usamos de esta manera, el valor de exp sera "true" por lo que sera tratado como string y NO como un valor booleano, por lo que complicaria hacer los v-if, en cambio si lo declaramos de la siguiente forma:
+
+        <input type="radio" v-model="exp" v-bind:value="true"> Si
+
+    El valor de la variable exp sera true (booleana), por lo que podriamos hacer v-if="exp" en vez de v-if="exp == 'true'"
+    *Notar que el metodo abreviado de v-model son : (dos puntos) antes de value, por lo que:
+        "v-bind:value" es lo mismo que ":value"
+    **Este no es el unico uso del v-bind
+
+    Otra forma de entender v-bind es que si el, los campos son considerados string y no un objeto de vue. Por ejemplo
+        class="unaclase" //tomara literalmente el string "unaclase"
+        v-bind:class="unaclase" //tomara el objeto llamado unaclase que debiese estar definido en la instancia Vue
+        :class="unaclase" //el metodo abreviado de v-bind:class
+
+v-if, v-else, v-else-if
+    Podemos mostrar u ocultar campos o etiquetas mediante condicionales como la etiqueta v-if, v-else,-v-else-if.
+    *el v-else y v-else-if tiene que ser ocupado siempre despues de una etiqueta con v-if y de manera seguida (en el mismo nivel). Por ejemplo (suponiendo que tengo el campo anterior):
+
+        <div v-if="name != ''"> 
+            <p>
+                Has introducido tu nombre
+            </p>
+        </div>
+        <div v-else> 
+            <p>
+                Aun No Has introducido tu nombre
+            </p>
+        </div>
+
+    En el ejemplo, se mostrara un mensaje segun la variable name (bindeada a un input). Otro ejemplo es que le pidamos al user ingresar la palabra "hola"
+
+        <div v-if="name == ''"> 
+            <p>
+                El campo esta vacio
+            </p>
+        </div>
+        <div v-else-if = "name == 'hola'"> 
+            <p>
+                Has ingresado correctamente lo solicitado!
+            </p>
+        </div>
+        <div v-else> 
+            <p>
+                No es lo que pedi
+            </p>
+        </div>
+
+<template>
+    Es una etiqueta de Vuejs muy parecida al <div> pero se diferencia en que cuando Vue rendereriza el DOM, esta etiqueta no es renderizada.
+    Nos permite agrupar una serie de elementos para luego ser mostrados de forma condicional sin necesidad de añadir una capa o div extra a nuestra página.
+    La ventaja es que al generar el dom, el codigo html final queda mas limpio y entendible quitando esta redundancia de etiquetas.
+
+v-show
+    Funciona igual que v-if, la unica diferencia es que v-show oculta/muestra la etiqueta mediante CSS (hidden). En cambio v-if mas que ocultar no rederiza el html (no existen).
+    v-show es mas ligero que v-if, ya que renderiza una vez y luego se oculta mediante CSS, en cambio v-if tiene que volver a renderizar cada vez que se ejecute alguna condicion.
+    Por lo anterior se recomienda el uso del v-show cuando sepamos que las etiquetas ocultas van estar en constante cambio (mostrar/ocultar) dada la interaccion del usuario, y que usemo el v-if cuando
+    se necesita evaluar una accion una sola vez al comienzo de la pagina.
+    Un aspecto importante al decidir si usar v-if o v-show es que la directiva v-show es mucho más rápida ya que no elimina por completo los elementos del DOM al ocultarlos. 
+    *Si queremos hacer uso de la directiva v-else debemos utilizar v-if ya que v-else tampoco funciona con v-show.
+    *v-show no funciona con el tag <template>, ya que por motivos Obvio, template no se renderiza.
+
+key
+    Alterar el DOM es un proceso pesado, por lo tanto Vue.js trata de optimizar este proceso realizando la menor cantidad de cambios en el DOM. 
+    Sin embargo, si queremos alterar este comportamiento por defecto, debemos especificarlo con el uso de la propiedad key en los elementos que no queremos que Vue reutilice.
+
+---------------------------------------------------------------------------------------------------------------------------------
+3) Validacion Basica, funciones y CSS Dinamico
+
+Podemos dar mensajes al usuario segun el estado de un input (textarea por ejemplo), lo podemos hacer de 2 formas:
+La primera forma (no recomendada) es creando varios <p> con v-if, de la siguiente forma:
+    <textarea class="form-control" rows="4" v-model="encuesta.description"></textarea>
+    <p v-if="encuesta.description.trim() == ''">El campo es obligatorio</p>
+    <p v-else-if="encuesta.description.trim().length > 20">Demasiado Texto, maximo 20 caracteres</p>
+    <p v-else-if="encuesta.description.trim().length < 5">Poco Texto, minimo 5 caracteres</p>
+
+La segunda forma (recomendada) es haciendo el uso de funciones y imprimiendo el resultado:
+    <textarea class="form-control" rows="4" v-model="encuesta.description"></textarea>
+    <p v-if="descriptionError != ''">{{descriptionError}}</p>
+
+Funciones (computed)
+    Podemos definir funciones con el elemento computed dentro de nuestra instancia VM:
+        var vm = new Vue({
+            el : "#app",
+            data : {
+                titulo: 'Encuesta',
+                encuesta: {
+                    exp: null,
+                    years: 0,
+                    description: '',
+                }
+            },
+            computed: {
+                descriptionError : function(){
+                    var val= this.encuesta.description.trim();
+
+                    if(val == ''){
+                        return "El campo es obligatorio";
+                    }
+                    if(val.length > 20){
+                        return "Demasiado Texto, maximo 20 caracteres";
+                    }
+                    if(val.length < 5){
+                        return "Poco Texto, minimo 5 caracteres";
+                    }
+                }
+            }
+        });
+
+Clases/Estilos de CSS Dinamicos
+    *"has-error" es una clase de Bootstrap que colorea de color rojo los elementos html dentro de la etiqueta.
+    Especificando un objeto dentro de la directiva v-bind:class (o simplemente :class) podemos agregar estilos de forma dinámica a nuestros elementos. Por ejemplo:
+        <div v-if="vue.years < 2" :class="{ 'form-group': true, 'has-error': descriptionError != null }">
+
+    v-bind evaluara las operaciones como javascript por lo que "form-group" al ser true siempre estara visible, al contrario de "has-error" que sera evaluado segun su resultado de retorno.
+    Vue nos permite combinar un atributo class dinámico (con el uso de v-bind:class o :class) y un atributo class estático. En nuestro ejemplo anterior, 
+    la clase form-group es estática (siempre estará presente), por lo tanto podemos simplificar nuestro código de la siguiente manera:
+        <div v-if="vue.years < 2" class="form-group" :class="{ 'has-error': descriptionError }">
+
+    :class tambien puede aceptar un array donde se pueden combinar clases y objetos (No recomendado, pero para conocimiento). Por Ejemplo:
+        <div v-if="vue.years < 2" :class="['form-group',{ 'container': true}, {'has-error' : descriptionError != null }]"> o
+        <div v-if="vue.years < 2" :class="['form-group',{ 'container': true, 'has-error' : descriptionError != null }]">
+
+    Como ultima opcion, y para proyectos mas complejos, podemos poner toda la logica en una funcion (computed) cuyo retorno podria ser un objeto con las clases correspondientes y ser llamada por el :class.
+
+    :styles
+    Por ultimo, al igual como tratamos las clases con :class, existe v-bind:styles o simplemente :styles para los estilos, cumpliendo las mismas reglas de :class antes mencionadas.
+
+---------------------------------------------------------------------------------------------------------------------------------
+4) Bucle for
+
+v-for
+    Nos permite iterar e imprimir sobre un array de forma dinamica y reactiva.
+    Si tuvieramos un array llamado tasks, podriamos iterarlo de las siguientes maneras:
+        <ul>
+            <li v-for="task in tasks">{{task}}</li>         //podemos usar "in"
+            <li v-for="task of tasks">{{task}}</li>         //como tambien usar "of", es lo mismo
+        </ul>
+    *Notar que primero es el alias y luego el array, al contrario del foreach de php donde el primero es el array y luego el alias.
+    *Podemos tener arrays que contengan objetos, por lo que podemos acceder mediante el .
+
+    v-for repetira una misma etiqueta (junto con todas los elementos (etiquetas) anidadas) N veces. Por lo que si estamos iterando un conjunto de etiquetas se recomienda usar el v-for en un <template> y asi evitar renderizar
+    mas etiquetas de las suficientes.
+
+    Podemos obtener el indice de la iteracion de la siguiente manera:
+        <ul>
+            <li v-for="(task, index) in tasks"> {{index}} {{task}} </li>         //Index puede llamarse de cualquier cosa
+        </ul>
+
+    Podemos combinar dentro de una misma etiqueta las directivas v-for con v-if, si suponemos que las task son un objeto con un titulo y un status pendiente (booleano), podrias solo imprimir las pendientes de esta forma:
+        <ul>
+            <li v-for="task in tasks" v-if="task.pending"> {{task.title}} </li>
+        </ul>
+
+    Podemos iterar en base a un listado de numero, por ejemplo:
+        <ul>
+            <li v-for="i in 10"> {{i}} </li>  //Mostrara una lista del 1 al 10
+        </ul>
+
+    Por ultimo, podemos iterar sobre las propiedades de un objeto, Por ejemplo:
+    Si tenemos el siguiente data:
+        data: {
+            user: {
+                'firstname':'Juanito',
+                'lastname':'Perez',
+                'nickname':'eljuanox',
+                'email':'eljuan123@email.com',
+                'website':'www.juanito.com',
+            }
+        }
+    Podemos iterar sus propiedades de las siguientes formas:
+        <ul>
+            <li v-for="propiedad of user"> {{propiedad}} </li>                          //Obtenemos el dato de cada propiedad (sin saber cual es cual)
+            <li v-for="(propiedad,key) of user">{{key}} : {{propiedad}} </li>            //O podemos obtener los datos junto con el nombre de la propiedad
+            <li v-for="(propiedad,key,index) of user">{{index}} ) {{key}} : {{propiedad}} </li> //O podemos obtener el dato, el nombre de la propiedad y la ubicacion en el array
+        </ul>
+
+---------------------------------------------------------------------------------------------------------------------------------
+5) Manejo de eventos
+
+v-on 
+    Los eventos los manejaremos con la directiva v-on seguido con el la funcion que queremos que se ejecute.
+    *Al igual que v-bind, v-on tiene su propia forma abreviada, y es con @
+    Podemos definir varios tipos de gatilladores, por ejemplo:
+        v-on:click ="" (o @click="") cuando queremos que un evento se active cuando se clickee el elemento html
+        v-on:keyup ="" (o @keyup="") cada vez que se presione una tecla (cualquiera)
+        v-on:keyup.enter ="" (o @keyup.enter="") cuando se apreta el enter
+        v-on:submit="" (o @submit="") Cuando se envia un formulario, para las etiquetas <form>
+
+    Cuando hay un evento submit, por defecto, hay una recarga de la pagina, para prevenir este refresco tenemos 2 opciones.
+    Primera solucion (Javascript): La funcion que es llamada por el submit por defecto (implicitamente) recibe como parametro el evento que se esta ejecutando, por lo que podemos
+    prevenir la accion de refresco con el siguiente comando javascript:
+        event.preventDefault();
+    
+    Segunda solucion (Vue): Como evitar refresco es algo muy comun, VUE trae una forma mas simple y corta, y es agregando un segundo modificador al v-on:
+        v-on:submit.prevent="" o @submit.prevent=""
+    
+    Si queremos pasar argumentos al metodo ademas del evento, debemos explicitar el evento con $event, ejemplo:
+        v-on:click="createTask(true, $event)"
+    Por lo tanto el metodo quedaria:
+        createTask(pendiente, evento){}
+
+    (Actualizacion): si tenemos 2 o mas eventos @click anidados, se ejecutaran todos (independiente de los cambios de pantalla), pero podemos evitar que se ejecuten todos agregando
+    un atributo extra al evento:
+        <ul @click="metodo1()">
+            <li @click.stop="metodo2()></li>
+        </ul>
+    Agregando "stop" evitara que se ejecuten todos los demas eventos excepto el metodo2, por lo que 
+
+
+---------------------------------------------------------------------------------------------------------------------------------
+6) Filtros (de texto)
+
+Vue permite definir filtros que pueden usarse para aplicar formato de texto común. En otras palabras podemos definir reglas para formatear un texto ingresado por el usuario o desde BD
+Podemos aplicar varios filtros a un mismo texto y se ejecutaran de manera ordenada.
+Dentro de una interpolacion ({{ }}) podemos poner nuestro texto o una propiedad del tipo string seguido de un pipe | y el nombre del filtro, ejemplo:
+    {{ nombre | upper | title }}
+nombre es una variable con una cadena de texto
+upper y title son filtros que definiremos en nuestra instancia Vue
+
+Cuando definamos las funciones en nuestros filtros, recibira implicitamente la cadena de texto (como tambien puede recibir argumentos extra)
+
+    filters : {
+        upper: function(value){
+            return value.toUpperCase();
+        },
+        title: function(value){
+            return "Mr " + value;
+        },
+        titulo: function(value, title){
+            return title+ ". " + value;
+        }
+    }
+
+Como los filtros son aplicados ordenadamente, para el ejemplo, primero se cambiara el nombre a mayuscula y despues se le agrega el Mr, por lo que Mr no cambiara a mayuscula. En cambio si hubiesemos
+aplicado los filtors al reves, como {{ nombre | title | upper }}, Mr estaria en mayuscula.
+
+Los filtros pueden ser declarados de manera Global para que puedan ser usada por multiples instancias de Vue dentro de una misma pagina, esto lo podemos hacer con el siguiente codigo:
+
+    Vue.filter('title', function(value, title){
+        return title + ". " + value;
+    });
+
+Vuejs no tiene filtros propios, todos deben ser creados por nosotros, esto se debe a que javascript ya tiene muchas librerias que hacen ese trabajo, las cuales pueden complementarse mutuamente con Vue.
+Por ejemplo la libreria http://numeraljs.com/ la cual tiene muchas funciones para manejar numeros. Un ejemplo de aplicacion con Vue seria:
+
+    Vue.filter('title', function(value, title){
+        return title + ". " + value;
+    });
+
+---------------------------------------------------------------------------------------------------------------------------------
+*) Extra: Diferencia entre Computed Properties, filtros y metodos
+
+Aunque la mayorias de las acciones se pueden realizar con computed, filtros y metodos, es bueno saber diferenciarlas y saber en que momento usar cada una.
+
+Vue optimizara las computed properties para ejecutar sus metodos unicamente cuando haga falta, esto es, cuando las dependencias del Computed Properties cambien.
+Cuando hablamos de dependencias, nos referimos a las propiedades de nuestra instancia VM.
+Con eso podemos pensar que las computed properties son mas especificas a las propiedades de la instancia VM, mientras que los filtros
+y metodos son de uso general.
+
+Las computed properties y los filtros tienen en comun la utilidad de transformar los datos, especialmente antes de ser mostrados.
+La diferencia con los filtros es que podriamos dar forma a data que no necesariamente es una property.
+Si quisieramos filtrar el formato en que se muestra una property podriamos usar filtros, pero si quisieramos filtrar un set de datos de una porperty
+entonces usaremos computed.
+
+En cambio los metodos se utlizan cuando hay una alteracion al estado del sistema, como por ejemplo, agregar nuevos elementos/datos o cambiarlos.
+
+Otra diferencia es que una Computed Property siempre es llamada cuando una de sus dependencia (propiedad de instancia VM) se ve alterada en cambio el metodo 
+solo se ejecuta cuando se llama explicitamente.

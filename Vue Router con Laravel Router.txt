@@ -1,0 +1,38 @@
+Cuando usamos el History Mode de Vue Router podriamos tener problemas con los framework
+backend como laravel y su gestion de rutas.
+
+Si cargamos los componentes VUE en una ruta unica de laravel no tendremos problemas, ya
+que aunque la URL vaya cambiando segun nuestra navegacion, nunca habra un refresco o
+un request al servidor, PERO, si por alguna razon alguien ingresa una ruta (seguido de 
+enter) que es valida para VUE pero no registrada en Laravel, entonces tendremos un error
+de laravel por no encontrar esa ruta registrada.
+Siempre que ingresemos una URL directamente habra un request al servidor, por ende pasará
+primero por Laravel, luego por VUE.
+Para evitar este tipo de problemas, podemos definir la siguiente ruta en laravel:
+
+Route::get('{any}', function(){
+    return view('welcome');
+})->where('any','.*');
+
+Esta ruta hara que cualquier URL sea valido por el backend, por lo que la responsabilidad
+de mostrar las paginas o errores Not Found son del frontend.
+
+Esto no quiere decir que Laravel o el backend pierda toda su funcionalidad con sus rutas,
+ya que podemos seguir definiendo otras rutas y podemos seguir accediendo a ellas, por ejemplo
+las rutas API, grupo de rutas, middlewares, autentificacion, etc.
+
+----------------------------------------------------------------------------------------------
+2)
+
+Dentro de un proyecto laravel, para levantar el frontend con hot replacement:
+    npm run hot
+
+En nuestro poryecto laravel, formar la carpeta router con los archivos necesarios
+Luego importarla e incluirlo al app.js de laravel
+
+En nuestra pagina principal de laravel, crear un div con el id="app" e importar la libreria
+app.js 
+
+Para los errores de CSRF-TOKEN debemos guardarlo en una etiqueta meta de la pagina:
+
+    <meta name="csrf-token" content="{{ csrf_token() }}">

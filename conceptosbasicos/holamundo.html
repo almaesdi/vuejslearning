@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+
+    </head>
+    <body>
+        <div id="app">
+            {{titulo}}
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+        <script>
+            var vm = new Vue({
+                el : "#app",
+                data : {
+                    titulo : "",
+                }
+            });
+            vm.titulo = "Hola Mundo";
+        </script>
+
+    </body>
+</html>

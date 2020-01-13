@@ -1,0 +1,330 @@
+Basandose en nuestro proyecto de tareas anterior (segunda iteracion) haremos un SPA mas completo.
+
+-------------------------------------------------------------------------------------------------------------------------
+1) Arreglando la estructura del proyecto
+
+Componentes:
+  Primero ordenaremos el proyecto, por lo que pondremos todos nuestros componentes en una nueva carpeta. Esto significa a la vez modificar
+  todos los import dentro de los mismos componentes y del main.js
+  En proyectos mas grande y con diferentes modulos seria mas ordenado juntar todos los componentes de un determinado modulo en una subcarpeta
+  de components.
+  En este proyecto por ejemplo, pondremos todos los componentes de Task dentro de una subcarpeta task en components.
+  Ademas limpiaremos un poco mas el componente App.vue para dejarlo como un componente generico y no encargado de listar las tareas, por lo
+  que crearemos otro componente encargado de eso.
+
+Sugerencias (no implementadas):
+  Los componentes como icon.vue pueden llegar a ser usados por muchos componentes, por lo que este tipo de
+  componentes se sugiera estar dentro de alguna carpeta llamado "commons".
+  Ciertos archivos o variables como el Event-bus pueden ser importados globalmente en vez de ser importados en cada componente o archivo.
+  Para ello simplemente hay que declararlos en el main.js
+
+
+  *recordar actualizar las rutas en el webpack.config.js para el plugin purify
+
+Rutas Absolutas vs Relativas:
+A pesar que las rutas relativas son mas usadas que las absolutas, provocan problemas a la hora de mover archivos por sobre todo en los
+imports. Es mas recomendable usar rutas absolutas, ya que cualquier movimientos no debiese afectar los imports, ademas quedan mas legibles
+que leer "./../../../".
+Usaremos una opcion de de webpack para definir ALIAS y asi encapsular las rutas y dejarlas mas simples.
+Para ello modificaremos el archivo "webpack.config.js" y agregaremos un alias para la carpeta "src" y "components",
+por lo que usaremos __dirname para obtener la carpeta del proyecto y luego concatenamos con join.
+
+  resolve: {
+    alias: {
+      'vue$': 'vue/dist/vue.esm.js',
+      'src': path.join(__dirname,'src'),
+      'components': path.join(__dirname,'src/components'),
+    },
+  ...
+  }
+
+-------------------------------------------------------------------------------------------------------------------------
+2) Rutas (vue-router)
+
+Para instalar las funciones de ruta, debemos ejecutar el siguiente comando en la terminal:
+
+  npm install vue-router
+
+Luego, tenemos que incluirlo en nuestro archivo main.js
+  - Lo importamos
+  - Le indicamos a Vue que ocupara vue-router
+  - Generamos nuestra variable con las rutas, donde definiremos la ruta y el componente asociado (debemos importar cada
+    componente que usemos)
+  - Finalmente incluir el objeto router al objeto VM para indicar al componente principal que ocupara rutas
+
+
+    import Router from 'vue-router'
+    Vue.use(Router);
+
+    var router = new Router({
+      routes: [
+        {
+          path: '/tasks',
+          component: Tasks
+        }
+      ]
+    });
+
+    new Vue({
+      el: '#app',
+      router: router,               //O simplemente, router , en caso de ES6
+      render: h => h(App)
+    })
+
+(Actualizacion): Para mantener el orden de nuestro archivo main.js, podemos separar todo el codigo del router en archivos
+externos. Dentro de la carpeta src crearemos la carpeta "router" y dentro de ellas 2 archivos "routes.js y "index.js"
+
+  - En nuestro archivos "routes.js" exportara un array de objetos indicando las rutas
+  - En nuestro archivo "index.js" tendra toda la configuracion del vue-router, incluyendo las rutas importada del archivo routes
+  - Por ultimo, en nuestro main.js, importaremos el router y lo declararemos en nuestro objeto VM
+
+Finalmente, debemos indicarle al componente principal (app.vue), donde queremos imprimir el componente que nos indica la ruta,
+mediante la etiqueta:
+
+  <router-view>
+
+Por lo que en el componente principal podriamos tener un componente <header>. <router-view>(como body) y un <footer>, ya qyue
+normalmente el header (barra de navegacion/menu) y el footer se mantienen pagina a pagina
+
+Para generar links (sin refrescar la pagina) se ocupa la siguiente ruta:
+
+  <router-link to="/tasks">Tareas</router-link>
+
+*router-link nos generará automaticamente etiquetas <a>, si queremos que se generen otro tipo de etiquetas
+usaremos el atributo "tag".
+*router-link tiene el atributo "active-class" para aplicar clases si esta activo, lo cual es muy util para clases Bootstrap.
+o aplicar un css para marcar visualmente la opcion activa en el menu:
+
+  <router-link tag="li" active-class="active" to="/task">Tarea</router-link>
+
+*Si definimos una ruta a la raiz, cualquier otra ruta quedará activa ya que la raiz es parte de ella, por lo que tendremos
+(quizas) comportamientos indeseados en la aplicacion de active-class, por lo que podemos evitar este problema con el atributo:
+
+  exact
+
+De esta manera, el active-class solo se le aplicara cuando estemos en la raiz, y no en sus subrutas.
+
+*Notar que es diferente poner to="task" que to="/task"
+
+*Cada vez que cambiemos de Link, los componentes se recrearan, seteando nuevamente sus atributos, si por alguna razon, queremos
+que el componente guarde su ultimo estado (o no se recree) podemos usa un nuevo tag:
+
+  <keep-alive>
+
+Por ejemplo:
+
+  <keep-alive>
+    <route-view></route-view>
+  </keep-alive>
+
+  Esto hara que cada vez q se cree un componente, quede "vivo" y no se tenga que recrear en cada llamado o cambio de ruta
+
+2.1) Parametros Dinamicos:
+Podemos especificar parametros dinamicos dentro de las rutas los cuales pueden ser posteriormente rescatados
+Podemos definirla de esta manera:
+
+      routes: [
+        {
+          path: '/tasks',
+          component: Tasks
+        },
+        {
+          path: '/tasks/:id',
+          component: TaskDetails
+        }
+      ]
+
+Para obtener el valor de la ruta, en el componente podriamos hacer una computed property y usar this.route seguido
+por el nombre del parametro de la ruta, en el caso anterior:
+
+  this.$route.params.id
+
+Si queremos cambiar la ruta programaticamente para cambiar de ruta desde un metodo, podemos usar, this.$router.push
+Podriamos usar un evento @click en un elemento y que este nos cambie de ruta. Por ejemplo, queremos ver los detalles
+de una tarea, le pondremos un @click="select", por lo que definiremos el metodo:
+
+  methods :{
+    select(){
+      this.$router.push('/task/'+this.task.id)
+    }
+  }
+
+*Notas que uno es "route" y el otro es "router:
+  this.$router representa el componentes de rutas en general
+  this.$route representa la ruta en la que estamos en el momento
+
+*Existe una diferencia entre usar $router.push y $router.replace:
+  this.$router.push nos enviara a la siguiente pagina permitiendo volver a la url anterior al apretar "atras"
+  this.$router.replace nos enviara a la siguiente pagina pero reemplazando la url actual, por lo que al apretar
+  atras, no se volvera a la misma pagina. Ideal para errores moverse a errores 404, para que al apretar "atras"
+  no volver a la misma pagina de la cual nos estabamos viniendo
+
+*Existe otra forma de obtener los parametros de la ruta sin usar un metodo y el $route.
+Si en el archivo de las rutas agregamos un nueva opcion, podemos obtener los parametros como propiedades del objeto.
+Debemos poner "props: true, por ejemplo:
+
+  routes : [
+    ...
+    {
+      path:'/task/:id',
+      component:'TaskDetails',
+      props: true
+    },
+    ...
+  ]
+
+Con esto, en nuestro componente solo debemos especificar la propiedad props y luego podemos trabajar con ese atributo
+libremente
+
+2.2) Manejo de rutas inexistentes (error 404 not found)
+Dado que vue-router acepta todo tipo de rutas, inclusive las inexistentes en nuestro archivo de rutas, customizaremos
+una pagina de error.
+Crearemos un carpeta "errors" y el archivo NotFound.vue, lo importamos en nuestra ruta con el path '404':
+
+  {
+    path : '404',
+    component: ErrorNotFound
+  }
+
+Ahora, usaremos una ruta comodin en la cual caerá el router si es que no entra a otra ruta anteriormente, por lo que
+el comodin siempre tiene que ir al final de las rutas. Por ultimo, el comodin hara un "redirect" en vez de carga un
+componente:
+
+  {
+    path: '*',
+    redirect: '/404'
+  }
+
+Dado que en muchos componentes usaremos la redireccion a 404, nos convendria hacer un helper global, el cual imprima
+en consola (o un log) la ruta a la cual se intento entrar y luego hacer la redirreccion mediante replace.
+Por lo que en el main.js pondremos la siguiente funcion:
+
+window.not_found = function () {
+  console.log('Not Found '+this.$router.currentRoute.fullPath);
+}
+
+2.3) Rutas Anidadas o Subrutas
+Podemos declarar rutas anidadas o subrutas para poder mostrar un componente dentro de otro basado en la url.
+
+Vamos a incluir el componente TaskDetails dentro de Task en una subruta, mediante la propiedad "children":
+
+  {
+    path: '/tasks',
+    component: Tasks,
+    children: [
+      {
+        path: ':id',
+        component: TaskDetails,
+        props: true
+      },
+    ],
+  },
+
+Luego, dentro del componente padre debemos usar la etiqueta:
+
+  <router-view>
+
+Para indicar en que parte del componente mostrar la subruta
+
+Como diseño se le agrega una nueva clase dinamica a la tarea para cuando este activa, se le aplique un color
+como marcador.
+
+2.4) Rutas con nombres
+
+Podemos usar nombres fijos en las rutas para evitar que ante un cambio de nombre de ruta no tengamos que
+identificar todas las referencias en todos los componentes de la aplicacion, especialmente cuando son
+medianas a grandes SPA.
+Por lo que ante un cambio de nombre de ruta o de idioma, solo tendremos que cambiar un parametro y no todas
+las referencias en cada componentes u/o archivo.
+Para definir un nombre de ruta debemos usar el atributo "name":
+
+  {
+    path: '/tasks',
+    component: Dashboard,
+    name: 'tasks'
+  },
+
+Gracias a este cambio, podemos llamar a la ruta por su nombre {name:'tasks'},Por lo que todas las referencias
+en la aplicacion en vez de llamar to="/" debemos llamar:
+
+  :to="{name: 'tasks'}"     //Notar que como ya no es un string estatico, se debe usar v-bind
+
+En conclusion, Ahora podriamos renombrar la ruta "/tasks" a "/tareas" y las referencias de toda la aplicacion
+quedaran intactas
+
+2.5) Hash mode vs History mode
+
+Si nos damos cuenta, todas las URLs de Vue poseen el simbolo hash (#) y esto es debido a que el modo por defecto
+de vue-rtouer es el Hash Mode o Modo Hash. Este hash es utilizado para simular una URL y de estar forma evitar
+que la pagina sea recargada cuando una URL cambia.
+Esto no quiere decir que siempre debemos tener este Hash en todas nuestras URLs, podemos hacer que todas las
+rutas queden mas limpias si utlizamos el Modo Historia de HTML5.
+Para cambiar el modo del vue-router basta con definirlo en su declaracion:
+
+    const router = new VueRouter({
+        mode: 'history',
+        routes: [...]
+    });
+
+Luego, a partir de esa declaracion ya no será necesario usar el Hash en nuestras rutas, siempre y cuando el navegador
+soporte html5, el cual es casi un standard, excepto que estemos haciendo una SPA para un navegador antiguo determinado
+
+
+-------------------------------------------------------------------------------------------------------------------------
+3) Obtener Datos desde un componente sin pasarlo explicitamente
+
+Una vez que clickeamos una tarea, mediante el router, nos moveremos a un nuevo componente con sus detalles, el problema
+es que como fue mediante Router, no podemos enviar los datos de la tarea como lo hacemos anteriormente.
+Para ello, independizaremos los datos de las tareas a un archivo en vez de un componente.
+Crearemos la carpeta "store" y luego el archivo "index.js"
+
+Luego, exportaremos los datos como un objeto, pero no lo haremos directamente (export tasks) sino como un objeto con
+una propiedad "state" el cual contendra los datos.
+
+  let tasks = [
+    ...
+    {
+      description ..
+      pending...
+    },
+    ...
+  ];
+
+  export default {
+    state: {
+      tasks: tasks    //O simplemente tasks en ES6
+    }
+  };
+
+*Dado que en varios componentes necesitaremos una tarea en especifico en vez de todas las tareas, podemos hacer una
+funcion dentro de nuestro Store para devolver solo una tarea dada su ID.
+
+  export default {
+    state: {
+      tasks: tasks    //O simplemente tasks en ES6
+    },
+    findTask(id){
+      return this.state.tasks.find(task => task.id == id);
+    }
+  };
+
+Ahora que tenemos nuestros datos en un archivo aparte, solo basta con importar este archivo y obtener las tareas
+en cada componente.
+En el caso de nuestro TaskDetails, necesitamos que cargue la tarea una vez creado/invocado el componente, por lo que
+usaremos la siguiente funcion:
+
+  created(){
+    this.task = store.findTask(this.id);
+  },
+
+*En ciertas situaciones, si usamos la etiqueta <keep-alive>, el componente solo se creará una vez, por lo que cualquier
+cambio de ID no le afectará, ya que el metodo "created" solo se ejecutara cuando se cree. Sino usamos el keep-alive cada vez
+que llamemos al componente se creará denuevo obteniendo la id correctamente.
+En caso que sea necesario usar el keep-alive y queremos que el componente se actualize cada vez que lo llamemos (despues
+de crearse), podemos usar un WATCHER hacia la ID que esta cambiando.
+Los WATCHER se preocupan de realizar una determinada accion cuando una variable (definida en el watcher) sufre alguna modificacion.
+
+  watch: {
+    id: 'findTask'      //findTask es un method
+  }
+

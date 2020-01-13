@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+        <!-- Optional theme -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    </head>
+    <body>
+        <div id="app" class="container">
+            {{encuesta}}
+            {{titulo}}
+
+            <!--Requerido, primera pregunta-->
+            <h4>Has trabajado con VueJs antes?</h4>
+            <div class="radio">
+                <label class="radio-inline">
+                    <input type="radio" v-model="encuesta.exp" v-bind:value="true"> Si
+                </label>
+                <label class="radio-inline">
+                    <input type="radio" v-model="encuesta.exp" v-bind:value="false"> No
+                </label>
+            </div>
+
+            <!--Si la respuesta anterior es SI, muestro las demas preguntas-->
+            <template v-if="encuesta.exp">
+                <div class="form-group">
+                    <label for="vue_years">Cuantos años de experiencia?</label>
+                    <input type="number" v-model="encuesta.years" class="form-control">
+                </div>
+
+                <!-- Si tiene un año de experiencia o menos-->
+                <div v-if="encuesta.years <= 1" class="form-group" :class="{ 'has-error': descriptionError }">
+                    <label for="vue_years" class="control-label">Que te motivo a aprender vue?</label>
+                    <textarea class="form-control" rows="4" v-model="encuesta.description"></textarea>
+                    <p v-if="descriptionError != ''">{{descriptionError}}</p>
+                </div>
+
+                <!-- Si tiene 2 años de experiencia o mas-->
+                <div v-else class="form-group">
+                    <label for="vue_years">Cuentanos tu experiencia</label>
+                    <textarea class="form-control" rows="4" v-model="encuesta.description"></textarea>
+                </div>
+            </template>
+        </div>
+
+    
+        <script
+        src="https://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+        crossorigin="anonymous"></script>
+        <!-- Latest compiled and minified JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+        <script>
+            var vm = new Vue({
+                el : "#app",
+                data : {
+                    titulo: 'Encuesta',
+                    encuesta: {
+                        exp: null,
+                        years: 0,
+                        description: '',
+                    }
+                },
+                computed: {
+                    descriptionError : function(){
+                        var val= this.encuesta.description.trim();
+
+                        if(val == ''){
+                            return "El campo es obligatorio";
+                        }
+                        if(val.length > 20){
+                            return "Demasiado Texto, maximo 20 caracteres";
+                        }
+                        if(val.length < 5){
+                            return "Poco Texto, minimo 5 caracteres";
+                        }
+                    }
+                }
+            });
+
+        </script>
+    </body>
+</html>

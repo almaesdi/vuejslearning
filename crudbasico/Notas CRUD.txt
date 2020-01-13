@@ -1,0 +1,39 @@
+---------------------------------------------------------------------------------------------------------------------------------
+1) Listado
+
+Creamos los estilos basicos y el html del formulario, ademas de poner las condiciones (v-if) necesarias para mostrar y clases dinamicas
+para asignar nuestros estilos segun corresponda
+
+---------------------------------------------------------------------------------------------------------------------------------
+2) Creacion
+
+Agregamos el formulario de creacion y la funcion createTask junto con la variable new_task
+
+Metodos creados:
+createTask
+---------------------------------------------------------------------------------------------------------------------------------
+3) Actualizacion
+
+*Para editar y mantener una copia del original, debemos crear una variable Draft (borrador), por lo que haremos
+los cambios en el v-model del edit.
+
+Agregaremos las funciones para cada Icono (excepto eliminar) cambiando sus href por los eventos v-on:click
+
+Metodos Creados:
+toggleStatus
+editTask
+updateTask
+discardTask
+
+
+
+---------------------------------------------------------------------------------------------------------------------------------
+4) Eliminacion
+
+Para eliminar una tarea no basta con pasar el objeto task por funcion, dado que es solo una referencia, no el objeto en si.
+Tendremos que pasar el indice del arreglo para poder eliminarlo.
+Modificaremos el v-for para que devuelva indices
+
+Metodos creados:
+dropTask
+

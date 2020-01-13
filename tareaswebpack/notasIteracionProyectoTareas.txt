@@ -1,0 +1,137 @@
+---------------------------------------------------------------------------------------------------------------------------------
+1) Proyecto modularizando CRUD tareas
+
+Tomaremos el proyecto de las tareas y lo modularizaremos aun mas.
+
+Los componentes antes definidos como globales ahora se definiran en archivos .vue, estos son llamados "Single Component File".
+Los archivos .vue contienen los siguientes 3 elementos:
+    - Template HTML
+    - La definicion del componente VUE.
+    - Estilos del template
+
+Un componente puede incluir otro siendo importado y definido en el vue del componente padre. Por ejemplo:
+
+<script>
+  import Icon from './Icon.vue' //Importando el componente Icon
+
+  export default {
+    components:{
+      'app-icon' : Icon,        //Definiendo y asignando el tag a la importacion
+    },
+  ....
+</script>
+
+
+Para el proyecto crearemos archivos VUE de nuestros 2 componentes que eran globales:
+  - Task.vue
+  - Icon.vue
+
+*Pueden seguir siendo globales trascopiando el mismo codigo en el main.js pero no es una buena practica. Se recomienda siempre modularizar
+
+Las variables que eran globales como EventBus pueden ser representados por archivo JS.
+
+Cuando traspasemos el proyecto, VUE nos dara una advertencia en que un ciclo v-for debiese tener una v-bind:key unico por cada iteracion. A pesar
+de ser una advertencia, por buena practica lo solucionaremos de la siguiente manera:
+Dado que hicimos un array de objetos como de prueba, no le pusimos ningun ID unico (lo normal es que siempre venga). Esto podriamos solucionarlo\
+agregando un id a cada tarea de forma manual. Pero lo compliremos un poco, haremos una funcion que asigne id mediante el atributo "created".
+
+En el archivo App.vue (donde tenemos nuestro array de tareas) modificaremos nuestro componente vue agregando la siguiente funcion:
+
+  created: function(){
+    this.tasks.forEach(function(task,index){
+      //task.id = index +1; //Este metodo no funciona cuando se agrega propiedades nuevas
+      this.$set(task,'id',index+1);
+    }.bind(this)); //Con bind atamos la funcion anonima al objeto VM o componente Vue
+  },
+
+Luego cuando usamos la etiqueta:
+
+  <app-task v-for="(task,index) of tasks" v-bind:key="task.id" .....
+
+
+---------------------------------------------------------------------------------------------------------------------------------
+2) Refactorizando el proyecto (1 era iteracion)
+
+Como se mencionó, webpack con babel podremos usar funciones ES6 (javascript 6) sin preocuparnos de la compatibilidad.
+Por lo que podremos usar sus expresiones y simplificar algunas funciones. Algunos ejemplos:
+
+  - Simplificacion de funciones
+
+    Funciones antes escritas como:
+
+      toggleStatus: function(){
+        ....
+      },
+
+    Pueden escribirse como:
+      toggleStatus(){
+        ...
+      }
+
+  - Arrow Functions
+    Las funciones flechas permiten escribir funciones en una sintaxis mas corta. Ademas de eso ya no necesitamos
+    bindear el "this" de la funcion a la instancia VM:
+
+      hello = function() {
+        return "Hello World!";
+      }
+
+    Con arrow function:
+
+      hello = () => {
+        return "Hello World!";
+      }
+
+     Ejemplos de cambios en nuestro proyecto:
+
+      Antes:
+      this.tasks.forEach(function(task,index){
+        this.$set(task,'id',index+1);
+      }.bind(this));
+
+      Despues:
+      this.tasks.forEach(
+        (task,index) => this.$set(task,'id',index+1)
+      );
+
+
+      Antes:
+      eventBus.$on('editing',function(index){
+          if(this.index != index){
+              this.discardTask();
+          }
+      }.bind(this));
+
+      Despues:
+      eventBus.$on('editing',
+        (index) => {
+          if(this.index != index){
+              this.discardTask();
+          }
+        }
+      );
+
+---------------------------------------------------------------------------------------------------------------------------------
+3) Refactorizando el proyecto (2 da iteracion)
+
+Pasaremos a componentes 2 elementos mas:
+
+TaskList:
+Traspasremos el codigo html y el metodo deletetask desde el app.vue.
+Importaremos las Task en nuestro tasklist
+Finalmente importarmos el nuevo tasklist a app.vue.
+La ventaja de componizar la lista de tarea es, ademas de modularizar (mantenimiento), es que ahora podriamos
+tener diferentes listas. Por ejemplo, podemos poner en app.vue:
+
+  <app-task-list :tasks="tasks"></app-task-list>
+  <app-task-list :tasks="tasks2"></app-task-list>
+
+*Siendo tasks2 otra lista.
+
+TaskForm.vue:
+Traslados el codigo html y las funciones para crear una tarea.
+Dado que create task graba en el arreglo de tasks, y este no pertenece al nuevo componente, debemos generar
+un evento, que le diga al componente padre (app.vue, donde se aloja nuestro arreglo) que agregue la nueva tarea.
+Por lo que nuestro componente, creara el objeto tarea, pero sera el componente padre quien la agrege al array
+de objetos principal.
+

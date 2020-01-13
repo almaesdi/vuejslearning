@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+        <!-- Optional theme -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    </head>
+    <body class="container">
+        <div id="app">
+            {{$data}}
+
+            <h2>Bievenido</h2>
+            <p>Tus datos son: </p>
+            <ul>
+                <li v-for="(property,key) of user">{{key}} : {{property}}</li>
+            </ul>
+
+            <h4>Todas las tareas</h4>
+            <ul>
+                <li v-for="task of tasks">{{task.titulo}}</li>
+            </ul>
+
+            <template v-if="pendingTasks.length > 0">
+                <h4>Tareas Pendientes</h4>
+                <ul>
+                    <li v-for="task of pendingTasks">{{task.titulo}}</li>
+                </ul>
+            </template>
+            <template v-else><h4>No hay tareas pendientes</h4></template>
+
+
+            <h4>Vista General</h4>
+            <ul>
+                <li v-for="task of tasks"> 
+                    <template v-if="task.pendiente">{{task.titulo}}</template>
+                    <del v-else>{{task.titulo}}</del>
+                </li>
+            </ul>
+
+        </div>
+
+        <script
+        src="https://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+        crossorigin="anonymous"></script>
+        <!-- Latest compiled and minified JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+        <script>
+            var vm = new Vue({
+                el : "#app",
+                data : {
+                    user: {
+                        'First Name':'Juanito',
+                        'Last Name':'Perez',
+                        'Nickname':'eljuanox',
+                        'Email':'eljuan123@email.com',
+                        'Website':'www.juanito.com',
+                    },
+                    tasks: [
+                        {
+                                'titulo' : 'Primera Tarea',
+                                'pendiente' : true,
+                        },
+                        {
+                                'titulo' : 'Segunda Tarea',
+                                'pendiente' : false,
+                        },
+                        {
+                                'titulo' : 'Tercera Tarea',
+                                'pendiente' : false,
+                        },
+                        {
+                                'titulo' : 'Cuarta Tarea',
+                                'pendiente' : true,
+                        },
+                    ],
+                },
+                computed: {
+                    pendingTasks : function () {
+                        //forma y retorna un nuevo array si pendiente es verdadero
+                        return this.tasks.filter(function(item){
+                            return item.pendiente;//si el item cumple, se devuelve, sino se descarta
+                        });
+                    }
+                },
+            });
+        </script>
+
+    </body>
+</html>

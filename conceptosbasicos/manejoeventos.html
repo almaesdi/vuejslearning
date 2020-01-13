@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+        <!-- Optional theme -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    </head>
+    <body class="container">
+        <div id="app">
+            {{$data}}
+
+            <h2>Bievenido</h2>
+            <p>Tus datos son: </p>
+            <ul>
+                <li v-for="(property,key) of user">{{key}} : {{property}}</li>
+            </ul>
+
+            <h4>Todas las tareas</h4>
+            <ul>
+                <li v-for="task of tasks">{{task.titulo}}</li>
+            </ul>
+
+            <template v-if="pendingTasks.length > 0">
+                <h4>Tareas Pendientes</h4>
+                <ul>
+                    <li v-for="task of pendingTasks">{{task.titulo}}</li>
+                </ul>
+            </template>
+            <template v-else><h4>No hay tareas pendientes</h4></template>
+
+
+            <h4>Vista General</h4>
+            <ul>
+                <li v-for="task of tasks"> 
+                    <template v-if="task.pendiente">{{task.titulo}}</template>
+                    <del v-else>{{task.titulo}}</del>
+                </li>
+            </ul>
+
+            <!--AGREGAREMOS EL FORMULARIO PARA QUE EL USUARIO PUEDA INGRESAR TAREAS-->
+            <!--PRIMERA FORMA, NO TAN CORRECTA
+            <h4>Agregar Tarea</h4>
+            <div class="form-group col-md-3">
+                <input type="text" class="form-control" v-model="new_task.titulo" v-on:keyup.enter ="createTask">
+                <div class="checkbox">
+                    <label><input type="checkbox" v-model="new_task.pendiente">Pendiente</label>
+                </div>
+                <button class="btn btn-primary" v-on:click="createTask">Crear Tarea</button>
+            </div>-->
+
+            <h4>Agregar Tarea</h4>
+            <form v-on:submit.prevent="createTask">
+                <div class="form-group col-md-3">
+                    <input type="text" class="form-control" v-model="new_task.titulo">
+                    <div class="checkbox">
+                        <label><input type="checkbox" v-model="new_task.pendiente">Pendiente</label>
+                    </div>
+                    <button class="btn btn-primary">Crear Tarea</button>
+                </div>
+            </form>
+
+        </div>
+
+        <script
+        src="https://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+        crossorigin="anonymous"></script>
+        <!-- Latest compiled and minified JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+        <script>
+            var vm = new Vue({
+                el : "#app",
+                data : {
+                    user: {
+                        'First Name':'Juanito',
+                        'Last Name':'Perez',
+                        'Nickname':'eljuanox',
+                        'Email':'eljuan123@email.com',
+                        'Website':'www.juanito.com',
+                    },
+                    new_task: {
+                        titulo : '',
+                        pendiente: true,
+                    },
+                    tasks: [
+                        {
+                                'titulo' : 'Primera Tarea',
+                                'pendiente' : true,
+                        },
+                        {
+                                'titulo' : 'Segunda Tarea',
+                                'pendiente' : false,
+                        },
+                        {
+                                'titulo' : 'Tercera Tarea',
+                                'pendiente' : false,
+                        },
+                        {
+                                'titulo' : 'Cuarta Tarea',
+                                'pendiente' : true,
+                        },
+                    ],
+                },
+                computed: {
+                    pendingTasks : function () {
+                        //forma y retorna un nuevo array si pendiente es verdadero
+                        return this.tasks.filter(function(item){
+                            return item.pendiente;//si el item cumple, se devuelve, sino se descarta
+                        });
+                    }
+                },
+                methods:{
+                    createTask : function (){
+                        this.tasks.push({
+                            'titulo' : this.new_task.titulo,
+                            'pendiente' : this.new_task.pendiente
+                        });
+
+                        //reseteo los campos
+                        this.new_task.titulo = '';
+                        this.new_task.pendiente = true;
+                    },
+                },
+            });
+        </script>
+
+    </body>
+</html>
